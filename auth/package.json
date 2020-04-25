@@ -4,9 +4,9 @@
     "main": "index.js",
     "license": "MIT",
     "scripts": {
-        "start": "NODE_ENV=production babel-node index.js",
-        "start:heroku": "NODE_ENV=production yarn run migrate && babel-node index.js",
-        "dev": "nodemon --exec babel-node index.js",
+        "start": "NODE_ENV=production babel-node ./app/index.js",
+        "start:heroku": "NODE_ENV=production yarn run migrate && babel-node ./app/index.js",
+        "dev": "nodemon --exec babel-node ./app/index.js",
         "migrate": "sequelize db:migrate",
         "un-migrate": "sequelize db:migrate:undo"
     },
