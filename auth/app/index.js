@@ -2,7 +2,7 @@ import { ApolloServer, AuthenticationError } from "apollo-server-express";
 import express from "express";
 import morgan from "morgan";
 import dotenv from "dotenv";
-
+import cors from "cors";
 import typeDefs from "./graphql/schema";
 import resolvers from "./graphql/resolvers";
 import {
@@ -11,7 +11,6 @@ import {
   AuthorizationDirective,
 } from "./graphql/directives";
 import getUser from "./utils/getUser";
-import db from "./db/models";
 
 // Load .env file contents
 dotenv.config();
@@ -19,7 +18,10 @@ dotenv.config();
 // app instance
 const app = express();
 // app middleware
-app.use(morgan("dev"));
+app.use(cors());
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
 
 // apollo server instance
 const server = new ApolloServer({
@@ -58,24 +60,4 @@ app.listen({ port }, () => {
   /*
   Clear model instances if need be in dev
   */
-  // db.User.destroy({
-  //   where: {},
-  //   truncate: { cascade: true },
-  // });
-  // db.phoneVerification.destroy({
-  //   where: {},
-  //   truncate: { cascade: true },
-  // });
-  // db.Driver.destroy({
-  //   where: {},
-  //   truncate: { cascade: true },
-  // });
-  // db.Passenger.destroy({
-  //   where: {},
-  //   truncate: { cascade: true },
-  // });
-  // db.Profile.destroy({
-  //   where: {},
-  //   truncate: { cascade: true },
-  // });
 });
