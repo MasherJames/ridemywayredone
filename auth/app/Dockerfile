@@ -5,7 +5,7 @@ FROM node:14.0.0-alpine3.11
 WORKDIR /usr/src/app
 
 # copy package.json and install dependencies
-COPY package.json ./
+COPY ../package.json ./
 
 COPY yarn.lock ./
 
