@@ -65,7 +65,7 @@ class AuthController {
     const t = await sequelize.transaction();
     let newUser;
     try {
-      // do a call, passing transaction as an option
+      // trigger user creation, passing transaction as an option
       newUser = await User.create(
         {
           firstName,
