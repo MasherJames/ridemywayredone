@@ -1,0 +1,36 @@
+{
+    "name": "ridemywayredone",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "MIT",
+    "scripts": {
+        "start": "nodemon --exec babel-node index.js",
+        "migrate": "sequelize db:migrate",
+        "un-migrate": "sequelize db:migrate:undo"
+    },
+    "dependencies": {
+        "africastalking": "^0.4.5",
+        "amqplib": "^0.5.5",
+        "apollo-server-express": "^2.12.0",
+        "azure-storage": "^2.10.3",
+        "bcryptjs": "^2.4.3",
+        "dotenv": "^8.2.0",
+        "express": "^4.17.1",
+        "graphql": "^15.0.0",
+        "jsonwebtoken": "^8.5.1",
+        "moment": "^2.24.0",
+        "pg": "^8.0.2",
+        "pm2": "^4.4.0",
+        "sequelize": "^5.21.6",
+        "sequelize-cli": "^5.5.1",
+        "uuid": "^7.0.3"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.9.0",
+        "@babel/node": "^7.8.7",
+        "@babel/preset-env": "^7.9.5",
+        "@babel/register": "^7.9.0",
+        "morgan": "^1.10.0",
+        "nodemon": "^2.0.3"
+    }
+}
