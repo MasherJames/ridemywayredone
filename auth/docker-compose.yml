@@ -1,0 +1,50 @@
+version: "3.7"
+services:
+  web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: auth_web_container
+    ports:
+      - 4000:4000
+    volumes:
+      - ./app:/usr/src/app
+    env_file: .env
+    restart: on-failure
+    depends_on:
+      - db
+      - rabbitmq
+
+  db:
+    image: postgres:12.2-alpine
+    env_file: .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    container_name: auth_db_container
+    ports:
+      - "5432:5432"
+    restart: "always"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    container_name: auth_rmq_container
+    env_file: .env
+    volumes:
+      - "rmq_data:/data"
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: auth_ngx_container
+    ports:
+      - 8000:80
+    depends_on:
+      - web
+
+volumes:
+  pgdata:
+  rmq_data:
