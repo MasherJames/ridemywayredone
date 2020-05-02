@@ -4,6 +4,7 @@ services:
     build:
       context: ./app
       dockerfile: Dockerfile
+    container_name: auth_web_container
     ports:
       - 4000:4000
     volumes:
@@ -19,6 +20,7 @@ services:
     env_file: .env
     volumes:
       - pgdata:/var/lib/postgresql/data
+    container_name: auth_db_container
     ports:
       - "5432:5432"
     restart: "always"
@@ -28,6 +30,7 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    container_name: auth_rmq_container
     env_file: .env
     volumes:
       - "rmq_data:/data"
@@ -36,6 +39,7 @@ services:
     build:
       context: ./nginx
       dockerfile: Dockerfile
+    container_name: auth_ngx_container
     ports:
       - 8000:80
     depends_on:
