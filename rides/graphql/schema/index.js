@@ -1,18 +1,37 @@
 import { gql } from "apollo-server-express";
 
 const typeDefs = gql`
+  directive @formatDate(
+    defaultFormat: String = "YYYY-MM-DD"
+  ) on FIELD_DEFINITION
+  directive @authenticated on FIELD_DEFINITION
+  directive @authorized on FIELD_DEFINITION
+  directive @authorizeDriver on FIELD_DEFINITION
+  directive @authorizePassenger on FIELD_DEFINITION
+
   type Car {
+    uuid: String!
     make: String!
     model: String!
     registrationNumber: String!
     capacity: Int!
+    createdAt: String! @formatDate
+    updatedAt: String! @formatDate
     driver: Driver
   }
 
-  type Ride {
+  extend type Driver @key(fields: "uuid") {
+    uuid: String! @external
+    cars: [Car]!
+  }
+
+  type Ride @key(fields: "uuid") {
+    uuid: String!
     origin: String!
     destination: String!
     departureTime: String!
+    createdAt: String! @formatDate
+    updatedAt: String! @formatDate
     car: Car!
   }
 
@@ -27,6 +46,21 @@ const typeDefs = gql`
     origin: String!
     destination: String!
     departureTime: String!
+    car: String!
+  }
+
+  input AmendCarInput {
+    make: String
+    model: String
+    registrationNumber: String
+    capacity: Int
+  }
+
+  input AmendRideInput {
+    origin: String
+    destination: String
+    departureTime: String
+    car: String
   }
 
   type CarPayload {
@@ -42,13 +76,20 @@ const typeDefs = gql`
   }
 
   type Query {
-    allCars: [Car]!
-    allRide: [Ride]!
+    allCars: [Car!]! @authenticated
+    allMyCars(uuid: String!): [Car!]! @authenticated
+    singleCar(uuid: String!): Car! @authenticated
+    allRides: [Ride!]! @authenticated
+    singleRide(uuid: String!): Ride! @authenticated
   }
 
   type Mutation {
-    addCar(input: CarInput!): CarPayload!
-    addRide(input: RideInput!): RidePayload!
+    addCar(input: CarInput!): CarPayload! @authenticated @authorizeDriver
+    amendCar(input: AmendCarInput!): CarPayload! @authenticated @authorizeDriver
+    addRide(input: RideInput!): RidePayload! @authenticated @authorizeDriver
+    amendRide(input: AmendRideInput!): RidePayload!
+      @authenticated
+      @authorizeDriver
   }
 `;
 export default typeDefs;

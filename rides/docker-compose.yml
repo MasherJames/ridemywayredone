@@ -22,14 +22,5 @@ services:
       - "5432:5432"
     restart: "always"
 
-  # nginx:
-  #   build:
-  #     context: ./nginx
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - 8000:80
-  #   depends_on:
-  #     - web
-
 volumes:
   pgdata:
