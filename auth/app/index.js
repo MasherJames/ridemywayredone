@@ -39,8 +39,7 @@ SchemaDirectiveVisitor.visitSchemaDirectives(schema, directives);
 
 // apollo server instance
 const server = new ApolloServer({
-  schema: buildFederatedSchema([{ typeDefs, resolvers }]),
-  // schema: schema,
+  schema: schema,
   formatError(err) {
     // Format error if need be, else this can be omitted
     console.log(err);
