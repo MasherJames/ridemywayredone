@@ -85,6 +85,25 @@ class DriverController {
       throw new ApolloError(error.message, "Driver_CREATE_ERROR_ROLLED_BACK");
     }
   }
+
+  static async fetchDriver(driverUuid) {
+    // start a transaction
+    const t = await sequelize.transaction();
+
+    try {
+      const driver = await Driver.findByPk(driverUuid, { transaction: t });
+
+      if (!driver) {
+        throw new ApolloError("driver does not exist", "DRIVER_DOES_NOT_EXIST");
+      }
+      return driver;
+    } catch (error) {
+      // rollback transaction
+      await t.rollback();
+      // throw the error
+      throw new ApolloError(error.message, "FETCH_DRIVER_ERROR_ROLLED_BACK");
+    }
+  }
 }
 
 export default DriverController;

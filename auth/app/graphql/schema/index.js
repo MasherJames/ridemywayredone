@@ -1,6 +1,7 @@
 import { gql } from "apollo-server-express";
 
 const typeDefs = gql`
+  scalar Upload
   directive @formatDate(
     defaultFormat: String = "YYYY-MM-DD"
   ) on FIELD_DEFINITION
@@ -13,7 +14,7 @@ const typeDefs = gql`
     PASSENGER
   }
 
-  type User {
+  type User @key(fields: "uuid") {
     uuid: String!
     firstName: String!
     lastName: String!
@@ -27,17 +28,21 @@ const typeDefs = gql`
     updatedAt: String! @formatDate
   }
 
-  type Driver {
+  type Driver @key(fields: "uuid") {
     uuid: String!
     licenseNumber: String!
     ntsaNumber: String!
+    createdAt: String! @formatDate
+    updatedAt: String! @formatDate
     user: User
   }
 
-  type Passenger {
+  type Passenger @key(fields: "uuid") {
     uuid: String!
     nationalId: String!
     placeOfResidence: String!
+    createdAt: String! @formatDate
+    updatedAt: String! @formatDate
     user: User
   }
 
@@ -48,6 +53,8 @@ const typeDefs = gql`
     address: String
     gender: String
     country: String
+    createdAt: String! @formatDate
+    updatedAt: String! @formatDate
     user: User!
   }
 

@@ -25,7 +25,11 @@ const sendEmail = async (mailData) => {
 const sendSms = async (smsData) => {
   if (smsData !== null) {
     const smsOpts = JSON.parse(smsData.content.toString());
-    await smsService.send(smsOpts);
+    try {
+      await smsService.send(smsOpts);
+    } catch (error) {
+      throw new Error("An error occurred while sending an sms");
+    }
   }
 };
 

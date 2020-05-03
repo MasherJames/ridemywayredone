@@ -11,5 +11,9 @@ export default {
     user: async (user) => {
       return user.getUser();
     },
+    __resolveReference: async (reference) => {
+      const response = await DriverController.fetchDriver(reference.uuid);
+      return response;
+    },
   },
 };

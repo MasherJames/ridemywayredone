@@ -14,7 +14,7 @@ RUN yarn install --frozen-lockfile --no-cache
 COPY . .
 
 # expose port to be mapped by the docker daemon
-EXPOSE 4000
+EXPOSE 4001
 
 # run app
 CMD ["yarn", "start"]

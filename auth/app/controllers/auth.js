@@ -1,4 +1,8 @@
-import { UserInputError, ApolloError } from "apollo-server-express";
+import {
+  UserInputError,
+  ApolloError,
+  AuthenticationError,
+} from "apollo-server-express";
 import bcryptjs from "bcryptjs";
 
 import models from "../db/models";
@@ -286,7 +290,7 @@ class AuthController {
   static async fetchUser(userUuid) {
     const t = await sequelize.transaction();
     try {
-      const user = await User.findByPk(userUuid);
+      const user = await User.findByPk(userUuid, { transaction: t });
       if (!user) {
         throw new ApolloError("User not found", "USER_NOT_FOUND");
       }
@@ -337,6 +341,7 @@ class AuthController {
       uuid: user.uuid,
       isEmailVerified: user.isEmailVerified,
       isPhoneVerified: user.isPhoneVerified,
+      userType: user.userType,
     };
 
     const authToken = await token(tokenPayload);
