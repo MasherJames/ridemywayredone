@@ -1,9 +1,6 @@
-import { ApolloServer, SchemaDirectiveVisitor } from "apollo-server-express";
+import { ApolloServer, SchemaDirectiveVisitor } from "apollo-server";
 import { buildFederatedSchema } from "@apollo/federation";
-import express from "express";
-import morgan from "morgan";
 import dotenv from "dotenv";
-import cors from "cors";
 import typeDefs from "./graphql/schema";
 import resolvers from "./graphql/resolvers";
 import {
@@ -17,14 +14,6 @@ import models from "./db/models";
 // Load .env file contents
 dotenv.config();
 
-// app instance
-const app = express();
-// app middleware
-app.use(cors());
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
-}
-
 // directives
 const directives = {
   formatDate: FormatDateDirective,
@@ -32,8 +21,7 @@ const directives = {
   authorized: AuthorizationDirective,
 };
 
-const schema = buildFederatedSchema([{ typeDefs, resolvers }]);
-
+let schema = buildFederatedSchema([{ typeDefs, resolvers }]);
 // Configure custom directives
 SchemaDirectiveVisitor.visitSchemaDirectives(schema, directives);
 
@@ -42,7 +30,6 @@ const server = new ApolloServer({
   schema: schema,
   formatError(err) {
     // Format error if need be, else this can be omitted
-    console.log(err);
     return err;
   },
   context: ({ req }) => {
@@ -59,12 +46,10 @@ const server = new ApolloServer({
   },
 });
 
-server.applyMiddleware({ app, path: "/graphql" });
-
 // port
 const port = process.env.PORT || 4001;
 
-app.listen({ port }, () => {
-  console.log(`👉 Server running on port ${port}`);
-  // models.User.destroy({ truncate: { cascade: true } });
+server.listen(port).then(({ url }) => {
+  console.log(`👉  Server ready at ${url}`);
+  models.User.destroy({ truncate: { cascade: true } });
 });

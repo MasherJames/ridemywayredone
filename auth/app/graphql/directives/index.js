@@ -1,7 +1,4 @@
-import {
-  SchemaDirectiveVisitor,
-  AuthenticationError,
-} from "apollo-server-express";
+import { SchemaDirectiveVisitor, AuthenticationError } from "apollo-server";
 import { GraphQLString, defaultFieldResolver } from "graphql";
 
 import formatDate from "../../utils/date";

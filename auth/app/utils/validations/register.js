@@ -26,9 +26,9 @@ export default ({
   if (!validPassword.test(password)) {
     errors.password = "Password should be valid";
   }
-  if (userType[0] !== 1 && userType[0] !== 2) {
-    errors.userType = "User type should be valid";
-  }
+  // if (userType !== "DRIVER" && userType !== "PASSENGER") {
+  //   errors.userType = "User type should be valid";
+  // }
 
   return {
     errors,

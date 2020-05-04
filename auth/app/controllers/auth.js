@@ -2,7 +2,7 @@ import {
   UserInputError,
   ApolloError,
   AuthenticationError,
-} from "apollo-server-express";
+} from "apollo-server";
 import bcryptjs from "bcryptjs";
 
 import models from "../db/models";

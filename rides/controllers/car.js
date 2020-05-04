@@ -1,4 +1,4 @@
-import { UserInputError, ApolloError } from "apollo-server-express";
+import { UserInputError, ApolloError } from "apollo-server";
 
 import models from "../db/models";
 import validCarInputs from "../utils/validators/car";

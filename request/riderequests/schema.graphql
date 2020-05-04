@@ -1,0 +1,36 @@
+input RideRequestInput {
+  compensation: Int!
+}
+
+type RideRequest @key(fields: "uuid") {
+  uuid: String!
+  compensation: Int!
+  ride: Ride!
+  passenger: Passenger!
+}
+
+type Passenger @key(fields: "uuid") @extends {
+  uuid: String! @external
+  rideRequests: [RideRequest]!
+}
+
+type Ride @key(fields: "uuid") @extends {
+  uuid: String! @external
+  rideRequests: [RideRequest]!
+}
+
+type RideRequestPayload {
+  success: Boolean!
+  message: String!
+  riderequest: RideRequest!
+}
+
+type Query {
+  allRequest: [RideRequest]!
+  request(uuid: String!): RideRequest
+}
+
+type Mutation {
+  requestRide(input: RideRequestInput!): RideRequestPayload!
+  cancelRequest(uuid: String!): Boolean
+}
