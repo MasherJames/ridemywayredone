@@ -21,12 +21,14 @@ class DriverController {
     // User must have finished phone and email verification
     const user = await User.findOne({ where: { uuid: currentUser.uuid } });
 
-    if (!user.isEmailVerified || !user.isPhoneVerified) {
-      throw new ApolloError(
-        `Please verify your ${!isEmailVerified ? "email" : "phone number"}`,
-        `${!isEmailVerified ? "EMAIL" : "PHONE_NUMBER"}_VERIFICATION_ERROR`
-      );
-    }
+    // if (!user.isEmailVerified || !user.isPhoneVerified) {
+    //   throw new ApolloError(
+    //     `Please verify your ${
+    //       !user.isEmailVerified ? "email" : "phone number"
+    //     }`,
+    //     `${!user.isEmailVerified ? "EMAIL" : "PHONE_NUMBER"}_VERIFICATION_ERROR`
+    //   );
+    // }
 
     // check if driver with that licenseNumber exists
     const existingDriverWithSameLicenseNumber = await Driver.findOne({

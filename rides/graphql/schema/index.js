@@ -76,10 +76,11 @@ const typeDefs = gql`
   }
 
   type Query {
-    allCars: [Car!]! @authenticated
-    allMyCars(uuid: String!): [Car!]! @authenticated
+    allCars: [Car!]! @authenticated @authorized
+    allMyCars: [Car!]! @authenticated
     singleCar(uuid: String!): Car! @authenticated
-    allRides: [Ride!]! @authenticated
+    allRides: [Ride!]! @authenticated @authorized
+    allMyRides: [Ride!]! @authenticated
     singleRide(uuid: String!): Ride! @authenticated
   }
 

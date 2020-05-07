@@ -14,5 +14,9 @@ export default {
     user: async (user) => {
       return user.getUser();
     },
+    __resolveReference: async (reference) => {
+      const response = await PassengerController.fetchPassenger(reference.uuid);
+      return response;
+    },
   },
 };

@@ -44,7 +44,7 @@ const publisher = async (payload, queue) => {
     });
 
     channel.sendToQueue(queue, Buffer.from(JSON.stringify(payload)), {
-      persistent: true,
+      persistent: false,
     });
   } catch (error) {
     console.log(error);
@@ -96,6 +96,7 @@ const createConnection = async () => {
       console.log(error, "error");
       return setTimeout(createConnection, 1000);
     }
+    console.log("Created Connection");
     amqpConnection = connection;
     await emailConsumer();
     await smsConsumer();

@@ -11,6 +11,7 @@ import {
   AuthorizePassengerDirective,
 } from "./graphql/directives";
 
+import models from "./db/models";
 // Load .env file contents
 dotenv.config();
 
@@ -34,6 +35,12 @@ const server = new ApolloServer({
     // Format error if need be, else this can be omitted
     return err;
   },
+  context: ({ req }) => {
+    if (req.headers.user) {
+      const user = JSON.parse(req.headers.user);
+      return { user };
+    }
+  },
 });
 
 // port
@@ -41,4 +48,6 @@ const port = process.env.PORT || 4002;
 
 server.listen(port).then(({ url }) => {
   console.log(`👉  Server ready at ${url}`);
+  // models.Car.destroy({ truncate: { cascade: true } });
+  // models.Ride.destroy({ truncate: { cascade: true } });
 });

@@ -120,6 +120,30 @@ class RideController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
+      throw new ApolloError(error.message, "FETCHING_RIDES_ERROR");
+    }
+  }
+
+  static async fetchAllMyRides(driver) {
+    const t = await sequelize.transaction();
+    try {
+      const allRides = await Ride.findAll({
+        where: { driver },
+        transaction: t,
+      });
+      if (!allRides.length) {
+        throw new ApolloError(
+          "There are no rides for now",
+          "NO_EXISTING_RIDES"
+        );
+      }
+      // commit the transaction if no error
+      await t.commit();
+      return allRides;
+    } catch (error) {
+      // rollback the transaction if error
+      await t.rollback();
+      // throw error
       throw new ApolloError(
         "An error occurred while fetching rides",
         "FETCHING_RIDES_ERROR"

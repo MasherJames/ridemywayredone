@@ -13,8 +13,8 @@ export default ({ model, make, capacity, registrationNumber }) => {
     }
   }
   if (capacity) {
-    if (!validNumbers.test(capacity)) {
-      errors.capacity = "Vehicle capacity should be valid";
+    if (isNaN(capacity)) {
+      errors.capacity = "Vehicle capacity should be a number";
     }
   }
   if (registrationNumber) {

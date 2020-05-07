@@ -8,7 +8,6 @@ import {
   AuthenticationDirective,
   AuthorizationDirective,
 } from "./graphql/directives";
-
 import models from "./db/models";
 
 // Load .env file contents
@@ -33,14 +32,8 @@ const server = new ApolloServer({
     return err;
   },
   context: ({ req }) => {
-    if (req.headers.authorization) {
-      // Grab the the token from the headers
-      const token = req.headers.authorization;
-      // get the user matching the token
-      const user = getUser(token);
-      if (!user) {
-        throw new AuthenticationError("You must be logged in");
-      }
+    if (req.headers.user) {
+      const user = JSON.parse(req.headers.user);
       return { user };
     }
   },
@@ -51,5 +44,7 @@ const port = process.env.PORT || 4001;
 
 server.listen(port).then(({ url }) => {
   console.log(`👉  Server ready at ${url}`);
-  models.User.destroy({ truncate: { cascade: true } });
+  // models.Driver.destroy({ truncate: { cascade: true } });
+  // models.Passenger.destroy({ truncate: { cascade: true } });
+  // models.User.destroy({ truncate: { cascade: true } });
 });

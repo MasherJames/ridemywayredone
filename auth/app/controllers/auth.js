@@ -9,10 +9,11 @@ import models from "../db/models";
 import validateRegistration from "../utils/validations/register";
 import { publisher } from "../utils/workers";
 import token from "../utils/generateToken";
-import smsSender from "../utils/sendSms";
 import getUser from "../utils/getUser";
 
 const User = models.User;
+const Driver = models.Driver;
+const Passenger = models.Passenger;
 const PhoneVerification = models.phoneVerification;
 const sequelize = models.sequelize;
 
@@ -103,7 +104,7 @@ class AuthController {
         text: `Thank you ${email} for using our platform\nClick the link below to confirm your email\nhttp://127.0.0.1:4000/email/confirm/${confirmEmailToken}`,
       };
 
-      await publisher(mailOptions, "email");
+      await publisher(mailOptions, "emails");
     } catch (error) {
       throw new ApolloError(
         "User created but an error occurred while sending email",
@@ -336,12 +337,30 @@ class AuthController {
       );
     }
 
+    // Fetch corresponding driver / passenger uuid
+    let driver, passenger;
+    try {
+      driver = await Driver.findOne({
+        where: { userId: user.uuid },
+      });
+      passenger = await Passenger.findOne({
+        where: { userId: user.uuid },
+      });
+    } catch (error) {
+      throw new ApolloError(
+        `Am error occurred: ${error.message}`,
+        "CORRESPONDING_DRIVER_PASSENGER_ERROR"
+      );
+    }
+
     const tokenPayload = {
       email: user.email,
       uuid: user.uuid,
       isEmailVerified: user.isEmailVerified,
       isPhoneVerified: user.isPhoneVerified,
       userType: user.userType,
+      driver: driver ? driver.uuid : null,
+      passenger: passenger ? passenger.uuid : null,
     };
 
     const authToken = await token(tokenPayload);

@@ -1,5 +1,6 @@
 input RideRequestInput {
   compensation: Int!
+  ride: String!
 }
 
 type RideRequest @key(fields: "uuid") {
@@ -26,7 +27,7 @@ type RideRequestPayload {
 }
 
 type Query {
-  allRequest: [RideRequest]!
+  allRideRequests: [RideRequest]!
   request(uuid: String!): RideRequest
 }
 

@@ -24,12 +24,14 @@ class PassengerController {
         uuid: currentUser.uuid,
       },
     });
-    if (!user.isEmailVerified || !user.isPhoneVerified) {
-      throw new ApolloError(
-        `Please verify your ${!isEmailVerified ? "email" : "phone number"}`,
-        `${!isEmailVerified ? "EMAIL" : "PHONE_NUMBER"}_VERIFICATION_ERROR`
-      );
-    }
+    // if (!user.isEmailVerified || !user.isPhoneVerified) {
+    //   throw new ApolloError(
+    //     `Please verify your ${
+    //       !user.isEmailVerified ? "email" : "phone number"
+    //     }`,
+    //     `${!user.isEmailVerified ? "EMAIL" : "PHONE_NUMBER"}_VERIFICATION_ERROR`
+    //   );
+    // }
 
     // check if passenger with that national Id exists
     const existingPassengerWithSameNationalId = await Passenger.findOne({
@@ -76,6 +78,29 @@ class PassengerController {
         error.message,
         "PASSENGER_CREATE_ERROR_ROLLED_BACK"
       );
+    }
+  }
+  static async fetchPassenger(passengerUuid) {
+    // start a transaction
+    const t = await sequelize.transaction();
+
+    try {
+      const passenger = await Passenger.findByPk(passengerUuid, {
+        transaction: t,
+      });
+
+      if (!passenger) {
+        throw new ApolloError(
+          "passenger does not exist",
+          "PASSENGER_DOES_NOT_EXIST"
+        );
+      }
+      return passenger;
+    } catch (error) {
+      // rollback transaction
+      await t.rollback();
+      // throw the error
+      throw new ApolloError(error.message, "FETCH_PASSENGER_ERROR_ROLLED_BACK");
     }
   }
 }

@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    "ariadne.contrib.django"
+    "ariadne.contrib.django",
+
     "riderequests"
 ]
 
@@ -78,8 +79,12 @@ WSGI_APPLICATION = 'request.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv("DATABASE_NAME"),
+        'USER':  os.getenv("DATABASE_USER"),
+        'PASSWORD':  os.getenv("DATABASE_PASSWORD"),
+        'HOST': 'localhost',
+        'PORT': 5432,
     }
 }
 

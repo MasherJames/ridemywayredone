@@ -45,7 +45,7 @@ class CarController {
       await t.commit();
       return {
         success: true,
-        message: "Ride successfully added",
+        message: "Car successfully added",
         car,
       };
     } catch (error) {

@@ -65,7 +65,7 @@ class AuthorizeDriverDirective extends SchemaDirectiveVisitor {
     const { resolve = defaultFieldResolver } = field;
 
     field.resolve = async (parent, args, ctx, info) => {
-      if (ctx.user.userType !== "DRIVER") {
+      if (!ctx.user.userType.includes(1)) {
         throw new AuthenticationError(
           "You can't access this level, you must be a driver",
           "NOT_DRIVER_ERROR"
@@ -80,7 +80,7 @@ class AuthorizePassengerDirective extends SchemaDirectiveVisitor {
     const { resolve = defaultFieldResolver } = field;
 
     field.resolve = async (parent, args, ctx, info) => {
-      if (ctx.user.userType !== "PASSENGER") {
+      if (!ctx.user.userType.includes(2)) {
         throw new AuthenticationError(
           "You can't access this level, you must be a passenger",
           "NOT_PASSENGER_ERROR"
