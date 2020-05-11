@@ -1,13 +1,13 @@
 input RideRequestInput {
-  compensation: Int!
+  compensation: Float!
   ride: String!
 }
 
 type RideRequest @key(fields: "uuid") {
-  uuid: String!
-  compensation: Int!
-  ride: Ride!
-  passenger: Passenger!
+  uuid: String
+  compensation: Float
+  ride: Ride
+  passenger: Passenger
 }
 
 type Passenger @key(fields: "uuid") @extends {
@@ -20,6 +20,11 @@ type Ride @key(fields: "uuid") @extends {
   rideRequests: [RideRequest]!
 }
 
+input RequestFilters {
+  passenger: String
+  ride: String
+}
+
 type RideRequestPayload {
   success: Boolean!
   message: String!
@@ -27,8 +32,8 @@ type RideRequestPayload {
 }
 
 type Query {
-  allRideRequests: [RideRequest]!
-  request(uuid: String!): RideRequest
+  allRideRequests(filters: RequestFilters!): [RideRequest]!
+  request(uuid: String!): RideRequest!
 }
 
 type Mutation {

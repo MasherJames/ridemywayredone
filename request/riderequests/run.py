@@ -15,6 +15,7 @@ riderequest = FederatedObjectType("RideRequest")
 
 mutation.set_field("requestRide", resolvers.resolve_request_ride)
 query.set_field("allRideRequests", resolvers.resolve_all_ride_request)
+query.set_field("request", resolvers.resolve_ride_request)
 riderequest.set_field("passenger", resolvers.resolve_riderequest_passenger)
 riderequest.set_field("ride", resolvers.resolve_riderequest_ride)
 

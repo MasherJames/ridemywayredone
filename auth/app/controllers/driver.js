@@ -98,6 +98,7 @@ class DriverController {
       if (!driver) {
         throw new ApolloError("driver does not exist", "DRIVER_DOES_NOT_EXIST");
       }
+      await t.commit();
       return driver;
     } catch (error) {
       // rollback transaction

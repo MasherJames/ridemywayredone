@@ -95,6 +95,7 @@ class PassengerController {
           "PASSENGER_DOES_NOT_EXIST"
         );
       }
+      await t.commit();
       return passenger;
     } catch (error) {
       // rollback transaction

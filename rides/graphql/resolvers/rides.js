@@ -32,7 +32,6 @@ export default {
       return response;
     },
     __resolveReference: async (reference) => {
-      console.log(reference);
       const response = await RideController.fetchRide(reference.uuid);
       return response;
     },

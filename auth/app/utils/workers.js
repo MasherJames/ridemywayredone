@@ -96,13 +96,13 @@ const createConnection = async () => {
       console.log(error, "error");
       return setTimeout(createConnection, 1000);
     }
-    console.log("Created Connection");
+
     amqpConnection = connection;
     await emailConsumer();
     await smsConsumer();
   });
 };
 
-createConnection();
+// createConnection();
 
 export { publisher };
