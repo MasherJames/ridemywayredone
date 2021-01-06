@@ -3,13 +3,13 @@ import AuthController from "../../controllers/auth";
 
 export default {
   Mutation: {
-    updateProfile: async (parent, { input }, ctx, info) => {
+    updateProfile: async (_, { input }, ctx) => {
       const response = await ProfileController.updateProfile(input, ctx);
       return response;
     },
   },
   Profile: {
-    user: async (parent, args, { user: { uuid } }, info) => {
+    user: async (_, _, { user: { uuid } }) => {
       const response = await AuthController.fetchUser(uuid);
       return response;
     },

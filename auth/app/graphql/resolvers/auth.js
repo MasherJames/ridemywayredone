@@ -6,29 +6,29 @@ export default {
     PASSENGER: 2,
   },
   Mutation: {
-    registerUser: async (parent, { input }, context, info) => {
+    registerUser: async (_, { input }) => {
       const response = await AuthController.register(input);
       return response;
     },
-    verifyEmail: async (parent, { input }, context, info) => {
+    verifyEmail: async (_, { input }) => {
       const response = AuthController.verifyEmail(input);
       return response;
     },
-    verifyPhone: async (parent, { input }, context, info) => {
+    verifyPhone: async (_, { input }) => {
       const response = AuthController.verifyPhone(input);
       return response;
     },
-    login: async (parent, { input }, context, info) => {
+    login: async (_, { input }) => {
       const response = AuthController.login(input);
       return response;
     },
   },
   Query: {
-    allUsers: async (parent, args, ctx, info) => {
+    allUsers: async () => {
       const response = await AuthController.fetchAllUsers();
       return response;
     },
-    getUser: async (parent, { uuid }, ctx, info) => {
+    getUser: async (_, { uuid }) => {
       const response = await AuthController.fetchUser(uuid);
       return response;
     },

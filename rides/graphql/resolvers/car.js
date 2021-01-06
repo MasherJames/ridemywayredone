@@ -2,25 +2,25 @@ import CarController from "../../controllers/car";
 
 export default {
   Mutation: {
-    addCar: async (parent, { input }, { user: { driver } }, info) => {
+    addCar: async (_, { input }, { user: { driver } }) => {
       const response = await CarController.addCar(input, driver);
       return response;
     },
-    amendCar: async (parent, { input, uuid }, ctx, info) => {
+    amendCar: async (_, { input, uuid }) => {
       const response = await CarController.amendCar(input, uuid);
       return response;
     },
   },
   Query: {
-    allMyCars: async (parent, args, { user: { driver } }, info) => {
+    allMyCars: async (_, _, { user: { driver } }) => {
       const response = await CarController.fetchAllMyCars(driver);
       return response;
     },
-    allCars: async (parent, args, ctx, info) => {
+    allCars: async () => {
       const response = await CarController.fetchAllCars();
       return response;
     },
-    singleCar: async (parent, { uuid }, ctx, info) => {
+    singleCar: async (_, { uuid }) => {
       const response = await CarController.fetchCar(uuid);
       return response;
     },

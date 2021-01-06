@@ -1,7 +1,7 @@
-import { SchemaDirectiveVisitor, AuthenticationError } from "apollo-server";
+import { SchemaDirectiveVisitor } from "apollo-server";
 import { GraphQLString, defaultFieldResolver } from "graphql";
 
-import formatDate from "../../utils/date";
+import { ErrorHandler, dateFormatter } from "../../utils";
 
 class FormatDateDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field) {
@@ -20,7 +20,7 @@ class FormatDateDirective extends SchemaDirectiveVisitor {
       const date = await resolve.call(this, parent, otherArgs, ctx, info);
       // If a format argument was not provided, default to the optional
       // defaultFormat argument taken by the @formatDate directive
-      return formatDate(date, format || defaultFormat);
+      return dateFormatter(date, format || defaultFormat);
     };
 
     // The formatted Date becomes a String, so the field type must change if it was not a string
@@ -34,7 +34,7 @@ class AuthenticationDirective extends SchemaDirectiveVisitor {
 
     field.resolve = async (parent, args, ctx, info) => {
       if (!ctx.user) {
-        throw new AuthenticationError(
+        ErrorHandler.authenticationError(
           "User must be authenticated",
           "USER_AUTHENTICATION_ERROR"
         );
@@ -51,7 +51,7 @@ class AuthorizationDirective extends SchemaDirectiveVisitor {
 
     field.resolve = async (parent, args, ctx, info) => {
       if (!ctx.user.isAdmin) {
-        throw new AuthenticationError(
+        ErrorHandler.authenticationError(
           "You can't access this level",
           "NOT_ADMIN_ERROR"
         );
@@ -66,24 +66,9 @@ class AuthorizeDriverDirective extends SchemaDirectiveVisitor {
 
     field.resolve = async (parent, args, ctx, info) => {
       if (!ctx.user.userType.includes(1)) {
-        throw new AuthenticationError(
+        ErrorHandler.authenticationError(
           "You can't access this level, you must be a driver",
           "NOT_DRIVER_ERROR"
-        );
-      }
-      return resolve(parent, args, ctx, info);
-    };
-  }
-}
-class AuthorizePassengerDirective extends SchemaDirectiveVisitor {
-  visitFieldDefinition(field) {
-    const { resolve = defaultFieldResolver } = field;
-
-    field.resolve = async (parent, args, ctx, info) => {
-      if (!ctx.user.userType.includes(2)) {
-        throw new AuthenticationError(
-          "You can't access this level, you must be a passenger",
-          "NOT_PASSENGER_ERROR"
         );
       }
       return resolve(parent, args, ctx, info);
@@ -96,5 +81,4 @@ export {
   AuthenticationDirective,
   AuthorizationDirective,
   AuthorizeDriverDirective,
-  AuthorizePassengerDirective,
 };

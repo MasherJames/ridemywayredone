@@ -2,7 +2,7 @@ import PassengerController from "../../controllers/passenger";
 
 export default {
   Mutation: {
-    registerPassenger: async (parent, { input }, ctx, info) => {
+    registerPassenger: async (_, { input }, ctx) => {
       const response = await PassengerController.registerPassenger(
         input,
         ctx.user

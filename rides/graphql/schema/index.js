@@ -7,7 +7,6 @@ const typeDefs = gql`
   directive @authenticated on FIELD_DEFINITION
   directive @authorized on FIELD_DEFINITION
   directive @authorizeDriver on FIELD_DEFINITION
-  directive @authorizePassenger on FIELD_DEFINITION
 
   type Car {
     uuid: String!

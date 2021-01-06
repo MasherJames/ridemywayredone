@@ -2,7 +2,7 @@ import DriverController from "../../controllers/driver";
 
 export default {
   Mutation: {
-    registerDriver: async (parent, { input }, ctx, info) => {
+    registerDriver: async (_, { input }, ctx) => {
       const response = await DriverController.registerDriver(input, ctx.user);
       return response;
     },
