@@ -1,15 +1,13 @@
-import {
-  UserInputError,
-  ApolloError,
-  AuthenticationError,
-} from "apollo-server";
 import bcryptjs from "bcryptjs";
 
 import models from "../db/models";
-import validateRegistration from "../utils/validations/register";
-import { publisher } from "../utils/workers";
-import token from "../utils/generateToken";
-import getUser from "../utils/getUser";
+import {
+  generateToken,
+  validateRegistrationInputs,
+  messagePublisher,
+  getUser,
+  ErrorHandler,
+} from "../utils";
 
 const User = models.User;
 const Driver = models.Driver;
@@ -29,9 +27,9 @@ class AuthController {
     } = userInput;
 
     // handle user input validations
-    const { errors, isError } = validateRegistration(userInput);
+    const { errors, isError } = validateRegistrationInputs(userInput);
     if (isError) {
-      throw new UserInputError("User inputs invalid", errors);
+      ErrorHandler.userInputError("User inputs invalid", errors);
     }
 
     // check if user with email exists
@@ -40,7 +38,7 @@ class AuthController {
     });
 
     if (existingUserWithEmail) {
-      throw new ApolloError(
+      ErrorHandler.apolloError(
         `User with email ${email} already exists`,
         "USER_WITH_EMAIL_EXISTS_ERROR"
       );
@@ -51,7 +49,7 @@ class AuthController {
     });
 
     if (existingUserWithPhone) {
-      throw new ApolloError(
+      ErrorHandler.apolloError(
         `User with phone number ${phoneNumber} already exists`,
         "USER_WITH_PHONE_EXISTS_ERROR"
       );
@@ -63,7 +61,7 @@ class AuthController {
       const salt = await bcryptjs.genSalt(10);
       hash = await bcryptjs.hash(password, salt);
     } catch (error) {
-      throw new ApolloError(error.message, "PASSWORD_HASH_ERROR");
+      ErrorHandler.apolloError(error.message, "PASSWORD_HASH_ERROR");
     }
 
     // start a transaction
@@ -88,12 +86,12 @@ class AuthController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(error.message, "USER_CREATE_ERROR_ROLLED_BACK");
+      ErrorHandler.apolloError(error.message, "USER_CREATE_ERROR_ROLLED_BACK");
     }
 
     // send email after sign up
     try {
-      const confirmEmailToken = await token({
+      const confirmEmailToken = await generateToken({
         uuid: newUser.uuid,
       });
 
@@ -104,13 +102,9 @@ class AuthController {
         text: `Thank you ${email} for using our platform\nClick the link below to confirm your email\nhttp://127.0.0.1:4000/email/confirm/${confirmEmailToken}`,
       };
 
-      await publisher(mailOptions, "emails");
+      await messagePublisher(mailOptions, "emails");
     } catch (error) {
-      throw new ApolloError(
-        "User created but an error occurred while sending email",
-        "SENDING_EMAIL_ERROR",
-        error
-      );
+      ErrorHandler.apolloError(error.message, "SENDING_EMAIL_ERROR");
     }
 
     // phone verification code
@@ -122,7 +116,7 @@ class AuthController {
       enque: true,
     };
 
-    await publisher(smsOptions, "sms");
+    await messagePublisher(smsOptions, "sms");
 
     // start a transaction
     const trans = await sequelize.transaction();
@@ -139,7 +133,7 @@ class AuthController {
       await trans.commit();
 
       // pass auth token to be used in passenger or driver creation
-      const authToken = await token({
+      const authToken = await generateToken({
         uuid: newUser.uuid,
       });
 
@@ -154,11 +148,7 @@ class AuthController {
       // rollback the transaction if error
       await trans.rollback();
       // throw error
-      throw new ApolloError(
-        "User created but an error occurred while saving the code",
-        "PHONE_VERIFICATION_ERROR",
-        error
-      );
+      ErrorHandler.apolloError(error.message, "PHONE_VERIFICATION_ERROR");
     }
   }
 
@@ -170,18 +160,17 @@ class AuthController {
     try {
       payload = getUser(verificationEmailToken);
     } catch (error) {
-      throw new ApolloError(
-        "Error occurred while verifying the email",
-        "EMAIL_VERIFICATION_ERROR",
-        error
-      );
+      ErrorHandler.apolloError(error.message, "EMAIL_VERIFICATION_ERROR");
     }
 
     const user = await User.findOne({ where: { uuid: payload.uuid } });
 
     // avoid verification of an email twice before the token expires
     if (user.isEmailVerified) {
-      throw new ApolloError("Email already verified", "EMAIL_VERIFIED_WARNING");
+      ErrorHandler.apolloError(
+        "Email already verified",
+        "EMAIL_VERIFIED_WARNING"
+      );
     }
 
     // Else initialize a transaction
@@ -203,7 +192,7 @@ class AuthController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(error.message, "EMAIL_VERIFICATION_ROLLED_BACK");
+      ErrorHandler.apolloError(error.message, "EMAIL_VERIFICATION_ROLLED_BACK");
     }
   }
 
@@ -217,7 +206,7 @@ class AuthController {
 
     // If code doesn't exist, its invalid or the user doesn't exist
     if (!verificationCode) {
-      throw new ApolloError(
+      ErrorHandler.apolloError(
         "Invalid phone verification code",
         "PHONE_VERIFICATION_ERROR"
       );
@@ -232,7 +221,10 @@ class AuthController {
 
     // avoid verification of the phone twice
     if (user.isPhoneVerified) {
-      throw new ApolloError("Phone already verified", "PHONE_VERIFIED_WARNING");
+      ErrorHandler.apolloError(
+        "Phone already verified",
+        "PHONE_VERIFIED_WARNING"
+      );
     }
 
     const t = await sequelize.transaction();
@@ -260,7 +252,7 @@ class AuthController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(error.message, "PHONE_VERIFICATION_ROLLED_BACK");
+      ErrorHandler.apolloError(error.message, "PHONE_VERIFICATION_ROLLED_BACK");
     }
   }
 
@@ -268,11 +260,8 @@ class AuthController {
     const t = await sequelize.transaction();
     try {
       const users = await User.findAll({ transaction: t });
-      if (!users.length) {
-        throw new ApolloError(
-          "There are no users for now",
-          "NO_EXISTING_USERS"
-        );
+      if (users.length === 0) {
+        return { message: "There are no users" };
       }
       // commit the transaction if no error
       await t.commit();
@@ -281,10 +270,7 @@ class AuthController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(
-        "An error occurred while fetching users",
-        "FETCHING_USERS_ERROR"
-      );
+      ErrorHandler.apolloError(error.message, "FETCHING_USERS_ERROR");
     }
   }
 
@@ -293,7 +279,7 @@ class AuthController {
     try {
       const user = await User.findByPk(userUuid, { transaction: t });
       if (!user) {
-        throw new ApolloError("User not found", "USER_NOT_FOUND");
+        return { message: "User not found" };
       }
       // commit the transaction if no error
       await t.commit();
@@ -302,10 +288,7 @@ class AuthController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(
-        "An error occurred while fetching user",
-        "FETCHING_USER_ERROR"
-      );
+      ErrorHandler.apolloError(error.message, "FETCHING_USER_ERROR");
     }
   }
 
@@ -314,7 +297,7 @@ class AuthController {
 
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      throw new AuthenticationError(
+      ErrorHandler.authenticationError(
         "User with email does not exist!",
         "WRONG_EMAIL_ERROR"
       );
@@ -324,14 +307,14 @@ class AuthController {
     try {
       isMatch = await bcryptjs.compare(password, user.password);
     } catch (error) {
-      throw new ApolloError(
+      ErrorHandler.apolloError(
         `Am error occurred: ${error.message}`,
         "PASSWORD_HASH_COMPARE_ERROR"
       );
     }
 
     if (!isMatch) {
-      throw new AuthenticationError(
+      ErrorHandler.authenticationError(
         `Wrong password for ${email}`,
         "WRONG_PASSWORD_ERROR"
       );
@@ -347,8 +330,8 @@ class AuthController {
         where: { userId: user.uuid },
       });
     } catch (error) {
-      throw new ApolloError(
-        `Am error occurred: ${error.message}`,
+      ErrorHandler.apolloError(
+        error.message,
         "CORRESPONDING_DRIVER_PASSENGER_ERROR"
       );
     }
@@ -363,7 +346,7 @@ class AuthController {
       passenger: passenger ? passenger.uuid : null,
     };
 
-    const authToken = await token(tokenPayload);
+    const authToken = await generateToken(tokenPayload);
 
     return {
       success: true,

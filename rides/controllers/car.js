@@ -1,7 +1,5 @@
-import { UserInputError, ApolloError } from "apollo-server";
-
 import models from "../db/models";
-import validCarInputs from "../utils/validators/car";
+import { validCarInputs, ErrorHandler } from "../utils";
 
 const Car = models.Car;
 const sequelize = models.sequelize;
@@ -13,7 +11,7 @@ class CarController {
     // handle user input validations
     const { errors, isError } = validCarInputs(carInput);
     if (isError) {
-      throw new UserInputError("User inputs invalid", errors);
+      ErrorHandler.userInputError("Car inputs invalid", errors);
     }
 
     const existingVehicleWithSameRegNo = await Car.findOne({
@@ -21,7 +19,7 @@ class CarController {
     });
 
     if (existingVehicleWithSameRegNo) {
-      throw new ApolloError(
+      ErrorHandler.apolloError(
         "Vehicle with this registration already exists",
         "VEHICLE_EXISTS_ERROR"
       );
@@ -52,7 +50,7 @@ class CarController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(error.message, "CAR_CREATE_ERROR_ROLLED_BACK");
+      ErrorHandler.apolloError(error.message, "CAR_CREATE_ERROR_ROLLED_BACK");
     }
   }
   static async amendCar(carInputs, carUuid) {
@@ -61,12 +59,12 @@ class CarController {
     // handle car input validations
     const { errors, isError } = validCarInputs(carInputs);
     if (isError) {
-      throw new UserInputError("Car inputs invalid", errors);
+      ErrorHandler.userInputError("Car inputs invalid", errors);
     }
 
     const carToUpDate = await Car.findByPk(carUuid);
     if (!carToUpDate) {
-      throw new ApolloError(
+      ErrorHandler.apolloError(
         "Car with that id does not exist",
         "CAR_DOES_NOT_EXIST"
       );
@@ -103,15 +101,15 @@ class CarController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(error.message, "CAR_AMEND_ERROR_ROLLED_BACK");
+      ErrorHandler.apolloError(error.message, "CAR_AMEND_ERROR_ROLLED_BACK");
     }
   }
   static async fetchAllMyCars(driver) {
     const t = await sequelize.transaction();
     try {
       const allCars = await Car.findAll({ where: { driver }, transaction: t });
-      if (!allCars.length) {
-        throw new ApolloError("There are no cars for now", "NO_EXISTING_CARS");
+      if (allCars.length === 0) {
+        return { message: "There are no cars for now" };
       }
       // commit the transaction if no error
       await t.commit();
@@ -120,18 +118,15 @@ class CarController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(
-        "An error occurred while fetching cars",
-        "FETCHING_CARS_ERROR"
-      );
+      ErrorHandler.apolloError(error.message, "FETCHING_CARS_ERROR");
     }
   }
   static async fetchAllCars() {
     const t = await sequelize.transaction();
     try {
       const allCars = await Car.findAll({ transaction: t });
-      if (!allCars.length) {
-        throw new ApolloError("There are no cars for now", "NO_EXISTING_CARS");
+      if (allCars.length === 0) {
+        return { message: "There are no cars for now" };
       }
       // commit the transaction if no error
       await t.commit();
@@ -140,10 +135,7 @@ class CarController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(
-        "An error occurred while fetching cars",
-        "FETCHING_CARS_ERROR"
-      );
+      ErrorHandler.apolloError(error.message, "FETCHING_CARS_ERROR");
     }
   }
 
@@ -152,7 +144,7 @@ class CarController {
     try {
       const car = await Car.findByPk(carUuid, { transaction: t });
       if (!car) {
-        throw new ApolloError("Car not found", "CAR_NOT_FOUND");
+        return { message: "Car not found" };
       }
       // commit the transaction if no error
       await t.commit();
@@ -161,10 +153,7 @@ class CarController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(
-        "An error occurred while fetching a car",
-        "FETCHING_CAR_ERROR"
-      );
+      ErrorHandler.apolloError(error.message, "FETCHING_CAR_ERROR");
     }
   }
 }

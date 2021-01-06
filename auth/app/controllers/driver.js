@@ -1,7 +1,5 @@
-import { UserInputError, ApolloError } from "apollo-server";
 import models from "../db/models";
-
-import validDriverRegistration from "../utils/validations/driverRegister";
+import { validDriverRegistrationInputs, ErrorHandler } from "../utils";
 
 const Driver = models.Driver;
 const User = models.User;
@@ -13,22 +11,22 @@ class DriverController {
     const { licenseNumber, ntsaNumber } = driverInput;
 
     // handle user input validations
-    const { errors, isError } = validDriverRegistration(driverInput);
+    const { errors, isError } = validDriverRegistrationInputs(driverInput);
     if (isError) {
-      throw new UserInputError("Driver inputs invalid", errors);
+      ErrorHandler.userInputError("Driver inputs invalid", errors);
     }
 
     // User must have finished phone and email verification
     const user = await User.findOne({ where: { uuid: currentUser.uuid } });
 
-    // if (!user.isEmailVerified || !user.isPhoneVerified) {
-    //   throw new ApolloError(
-    //     `Please verify your ${
-    //       !user.isEmailVerified ? "email" : "phone number"
-    //     }`,
-    //     `${!user.isEmailVerified ? "EMAIL" : "PHONE_NUMBER"}_VERIFICATION_ERROR`
-    //   );
-    // }
+    if (!user.isEmailVerified || !user.isPhoneVerified) {
+      ErrorHandler.apolloError(
+        `Please verify your ${
+          !user.isEmailVerified ? "email" : "phone number"
+        }`,
+        `${!user.isEmailVerified ? "EMAIL" : "PHONE_NUMBER"}_VERIFICATION_ERROR`
+      );
+    }
 
     // check if driver with that licenseNumber exists
     const existingDriverWithSameLicenseNumber = await Driver.findOne({
@@ -38,7 +36,7 @@ class DriverController {
     });
 
     if (existingDriverWithSameLicenseNumber) {
-      throw new ApolloError(
+      ErrorHandler.apolloError(
         "Driver with this license number already exists",
         "DRIVER_WITH_LICENSE_NUMBER_EXISTS_ERROR"
       );
@@ -51,7 +49,7 @@ class DriverController {
     });
 
     if (existingDriverWithSameNtsaNumber) {
-      throw new ApolloError(
+      ErrorHandler.apolloError(
         "Driver with this Ntsa number already exists",
         "Driver_WITH_NTSA_NUMBER_EXISTS_ERROR"
       );
@@ -84,7 +82,10 @@ class DriverController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(error.message, "Driver_CREATE_ERROR_ROLLED_BACK");
+      ErrorHandler.apolloError(
+        error.message,
+        "Driver_CREATE_ERROR_ROLLED_BACK"
+      );
     }
   }
 
@@ -96,7 +97,7 @@ class DriverController {
       const driver = await Driver.findByPk(driverUuid, { transaction: t });
 
       if (!driver) {
-        throw new ApolloError("driver does not exist", "DRIVER_DOES_NOT_EXIST");
+        return { message: "driver does not exist" };
       }
       await t.commit();
       return driver;
@@ -104,7 +105,7 @@ class DriverController {
       // rollback transaction
       await t.rollback();
       // throw the error
-      throw new ApolloError(error.message, "FETCH_DRIVER_ERROR_ROLLED_BACK");
+      ErrorHandler.apolloError(error.message, "FETCH_DRIVER_ERROR_ROLLED_BACK");
     }
   }
 }

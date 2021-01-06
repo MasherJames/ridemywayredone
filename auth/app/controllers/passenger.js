@@ -1,7 +1,5 @@
-import { UserInputError, ApolloError } from "apollo-server";
 import models from "../db/models";
-
-import validPassengerRegistration from "../utils/validations/passengerRegister";
+import { validPassengerRegistrationInputs, ErrorHandler } from "../utils";
 
 const Passenger = models.Passenger;
 const User = models.User;
@@ -13,9 +11,11 @@ class PassengerController {
     const { nationalId, placeOfResidence } = passengerInput;
 
     // handle user input validations
-    const { errors, isError } = validPassengerRegistration(passengerInput);
+    const { errors, isError } = validPassengerRegistrationInputs(
+      passengerInput
+    );
     if (isError) {
-      throw new UserInputError("Passenger inputs invalid", errors);
+      ErrorHandler.userInputError("Passenger inputs invalid", errors);
     }
 
     // User must have finished phone and email verification
@@ -24,14 +24,14 @@ class PassengerController {
         uuid: currentUser.uuid,
       },
     });
-    // if (!user.isEmailVerified || !user.isPhoneVerified) {
-    //   throw new ApolloError(
-    //     `Please verify your ${
-    //       !user.isEmailVerified ? "email" : "phone number"
-    //     }`,
-    //     `${!user.isEmailVerified ? "EMAIL" : "PHONE_NUMBER"}_VERIFICATION_ERROR`
-    //   );
-    // }
+    if (!user.isEmailVerified || !user.isPhoneVerified) {
+      ErrorHandler.apolloError(
+        `Please verify your ${
+          !user.isEmailVerified ? "email" : "phone number"
+        }`,
+        `${!user.isEmailVerified ? "EMAIL" : "PHONE_NUMBER"}_VERIFICATION_ERROR`
+      );
+    }
 
     // check if passenger with that national Id exists
     const existingPassengerWithSameNationalId = await Passenger.findOne({
@@ -41,7 +41,7 @@ class PassengerController {
     });
 
     if (existingPassengerWithSameNationalId) {
-      throw new ApolloError(
+      ErrorHandler.apolloError(
         `Passenger with this national id already exists`,
         "PASSENGER_WITH_NATIONAL_ID_EXISTS_ERROR"
       );
@@ -74,7 +74,7 @@ class PassengerController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(
+      ErrorHandler.apolloError(
         error.message,
         "PASSENGER_CREATE_ERROR_ROLLED_BACK"
       );
@@ -90,10 +90,7 @@ class PassengerController {
       });
 
       if (!passenger) {
-        throw new ApolloError(
-          "passenger does not exist",
-          "PASSENGER_DOES_NOT_EXIST"
-        );
+        return { message: "passenger does not exist" };
       }
       await t.commit();
       return passenger;
@@ -101,7 +98,10 @@ class PassengerController {
       // rollback transaction
       await t.rollback();
       // throw the error
-      throw new ApolloError(error.message, "FETCH_PASSENGER_ERROR_ROLLED_BACK");
+      ErrorHandler.apolloError(
+        error.message,
+        "FETCH_PASSENGER_ERROR_ROLLED_BACK"
+      );
     }
   }
 }

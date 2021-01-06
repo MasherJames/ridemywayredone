@@ -1,9 +1,9 @@
-import { UserInputError, ApolloError } from "apollo-server";
-
 import models from "../db/models";
-import validProfileRegistration from "../utils/validations/profile";
-import fileUuid from "../utils/generateUuid";
-import uploadFile from "../utils/fileUploads";
+import {
+  uploadFile,
+  generateUuid,
+  validProfileRegistrationInputs,
+} from "../utils";
 
 const Profile = models.Profile;
 const User = models.User;
@@ -22,7 +22,7 @@ class ProfileController {
     } = profileInput;
 
     // handle user input validations
-    const { errors, isError } = validProfileRegistration({
+    const { errors, isError } = validProfileRegistrationInputs({
       userName,
       middleNae,
       address,
@@ -30,7 +30,7 @@ class ProfileController {
       country,
     });
     if (isError) {
-      throw new UserInputError("Profile inputs invalid", errors);
+      ErrorHandler.userInputError("Profile inputs invalid", errors);
     }
 
     // User must have finished phone and email verification
@@ -41,7 +41,7 @@ class ProfileController {
     });
 
     if (!user.isEmailVerified || !user.isPhoneVerified) {
-      throw new ApolloError(
+      ErrorHandler.apolloError(
         `Please verify your ${!isEmailVerified ? "email" : "phone number"}`,
         `${!isEmailVerified ? "EMAIL" : "PHONE_NUMBER"}_VERIFICATION_ERROR`
       );
@@ -57,7 +57,7 @@ class ProfileController {
     if (profilePicture) {
       let { createReadStream, filename, mimetype } = await profilePicture;
 
-      filename = `${filename.split(".")[0]}${fileUuid()}.${
+      filename = `${filename.split(".")[0]}${generateUuid()}.${
         filename.split(".")[1]
       }`;
 
@@ -69,7 +69,7 @@ class ProfileController {
           mimetype
         );
       } catch (error) {
-        throw new ApolloError(
+        ErrorHandler.apolloError(
           "An error occurred while uploading the profile picture",
           "PROFILE_PICTURE_UPLOAD_ERROR",
           error
@@ -151,11 +151,7 @@ class ProfileController {
       // rollback the transaction if an error occurred
       await t.rollback();
 
-      throw new ApolloError(
-        `Error ${error.message}`,
-        "PROFILE_UPDATE_ERROR",
-        error
-      );
+      ErrorHandler.apolloError(error.message, "PROFILE_UPDATE_ERROR", error);
     }
   }
 }

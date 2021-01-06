@@ -1,7 +1,5 @@
-import { UserInputError, ApolloError } from "apollo-server";
-
 import models from "../db/models";
-import validRideInputs from "../utils/validators/ride";
+import { validRideInputs } from "../utils";
 
 const Ride = models.Ride;
 const sequelize = models.sequelize;
@@ -17,7 +15,7 @@ class RideController {
       departureTime
     );
     if (isError) {
-      throw new UserInputError("Ride inputs invalid", errors);
+      ErrorHandler.userInputError("Ride inputs invalid", errors);
     }
 
     // start a transaction
@@ -46,7 +44,7 @@ class RideController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(error.message, "RIDE_CREATE_ERROR_ROLLED_BACK");
+      ErrorHandler.apolloError(error.message, "RIDE_CREATE_ERROR_ROLLED_BACK");
     }
   }
   static async amendRide(rideInputs, rideUuid) {
@@ -59,12 +57,12 @@ class RideController {
       departureTime
     );
     if (isError) {
-      throw new UserInputError("Ride inputs invalid", errors);
+      ErrorHandler.userInputError("Ride inputs invalid", errors);
     }
 
     const rideToUpDate = await Ride.findByPk(rideUuid);
     if (!rideToUpDate) {
-      throw new ApolloError(
+      ErrorHandler.apolloError(
         "Ride with that id does not exist",
         "RIDE_DOES_NOT_EXIST"
       );
@@ -100,18 +98,15 @@ class RideController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(error.message, "RIDE_AMEND_ERROR_ROLLED_BACK");
+      ErrorHandler.apolloError(error.message, "RIDE_AMEND_ERROR_ROLLED_BACK");
     }
   }
   static async fetchAllRides() {
     const t = await sequelize.transaction();
     try {
       const allRides = await Ride.findAll({ transaction: t });
-      if (!allRides.length) {
-        throw new ApolloError(
-          "There are no rides for now",
-          "NO_EXISTING_RIDES"
-        );
+      if (allRides.length === 0) {
+        return { message: "There are no rides for now" };
       }
       // commit the transaction if no error
       await t.commit();
@@ -120,7 +115,7 @@ class RideController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(error.message, "FETCHING_RIDES_ERROR");
+      ErrorHandler.apolloError(error.message, "FETCHING_RIDES_ERROR");
     }
   }
 
@@ -132,10 +127,7 @@ class RideController {
         transaction: t,
       });
       if (!allRides.length) {
-        throw new ApolloError(
-          "There are no rides for now",
-          "NO_EXISTING_RIDES"
-        );
+        return { message: "There are no rides for now" };
       }
       // commit the transaction if no error
       await t.commit();
@@ -144,10 +136,7 @@ class RideController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(
-        "An error occurred while fetching rides",
-        "FETCHING_RIDES_ERROR"
-      );
+      ErrorHandler.apolloError(error.message, "FETCHING_RIDES_ERROR");
     }
   }
 
@@ -156,7 +145,7 @@ class RideController {
     try {
       const ride = await Ride.findByPk(rideUuid, { transaction: t });
       if (!ride) {
-        throw new ApolloError("Ride not found", "RIDE_NOT_FOUND");
+        return { message: "Ride not found" };
       }
       // commit the transaction if no error
       await t.commit();
@@ -165,10 +154,7 @@ class RideController {
       // rollback the transaction if error
       await t.rollback();
       // throw error
-      throw new ApolloError(
-        "An error occurred while fetching a ride",
-        "FETCHING_RIDE_ERROR"
-      );
+      ErrorHandler.apolloError(error.message, "FETCHING_RIDE_ERROR");
     }
   }
 }
