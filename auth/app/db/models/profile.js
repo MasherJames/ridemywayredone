@@ -1,4 +1,4 @@
-import generateMyId from "../../utils/generateUuid";
+import { generateUuid } from "../../utils";
 
 export default (sequelize, DataTypes) => {
   const Profile = sequelize.define(
@@ -7,7 +7,7 @@ export default (sequelize, DataTypes) => {
       uuid: {
         type: DataTypes.UUID,
         defaultValue: function () {
-          return generateMyId();
+          return generateUuid();
         },
         primaryKey: true,
       },
