@@ -1,6 +1,7 @@
 import { ApolloServer } from "apollo-server";
 import { ApolloGateway, RemoteGraphQLDataSource } from "@apollo/gateway";
 import { getUser } from "./helpers";
+
 /* custom RemoteGraphQLDataSource that allows us to modify the outgoing request
  with information from the Apollo Server context before it's sent*/
 

@@ -20,6 +20,7 @@ const directives = {
   authorized: AuthorizationDirective,
 };
 
+//takes an array of GraphQL schema modules and returns a federation-ready schema
 let schema = buildFederatedSchema([{ typeDefs, resolvers }]);
 // Configure custom directives
 SchemaDirectiveVisitor.visitSchemaDirectives(schema, directives);

@@ -4,7 +4,6 @@ from ariadne import (load_schema_from_path,
 from ariadne.contrib.federation import (
     FederatedObjectType, make_federated_schema)
 from . import resolvers
-# from .models import RideRequest
 
 # load schema file
 type_defs = load_schema_from_path("riderequests/schema.graphql")
