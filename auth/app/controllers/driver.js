@@ -41,7 +41,7 @@ class DriverController {
         "DRIVER_WITH_LICENSE_NUMBER_EXISTS_ERROR"
       );
     }
-    // check if driver with phone exists
+    // check if driver with ntsa exists
     const existingDriverWithSameNtsaNumber = await Driver.findOne({
       where: {
         ntsaNumber,

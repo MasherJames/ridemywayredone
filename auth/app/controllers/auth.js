@@ -14,7 +14,6 @@ const Driver = models.Driver;
 const Passenger = models.Passenger;
 const PhoneVerification = models.phoneVerification;
 const sequelize = models.sequelize;
-
 class AuthController {
   static async register(userInput) {
     const {
